@@ -1093,7 +1093,7 @@ CCcorrect <- function(x,vset=NULL,CGenes=NULL,ccor=.4,nComp=NULL,pvalue=.01,quan
 ## class definition
 #' @export Ltree
 #' @exportClass Ltree
-Ltree <- setClass("Ltree", slots = c(sc = "SCseq", ldata = "list", entropy = "vector", trproj = "list", par = "list", prback = "data.frame", prbacka = "data.frame", ltcoord = "matrix", prtree = "list", sigcell = "vector", cdata = "list"  ))
+Ltree <- setClass("Ltree", slots = c(sc = "SCseq", ldata = "list", entropy = "vector", trproj = "list", par = "list", prback = "data.frame", prbacka = "data.frame", ltcoord = "matrix", prtree = "list", sigcell = "vector", cdata = "list", trl = "list"  ))
 
 setValidity("Ltree",
             function(object) {
@@ -1541,6 +1541,39 @@ setMethod("plotmapprojections",
             }
           }
           )
+
+
+
+#' @exportMethod compspantree
+setGeneric(
+  "compspantree",
+  function(object)
+    standardGeneric("compspantree")
+)
+
+setMethod(
+  "compspantree",
+  signature = "Ltree",
+  definition = function(object) {
+    cent <- object@sc@fdata[object@sc@cluster$features,compmedoids(object@sc@fdata[object@sc@cluster$features,],object@sc@cpart,metric=object@sc@clusterpar$metric)]
+    dc <- as.data.frame(as.matrix(dist.gen(t(cent),method=object@sc@clusterpar$metric)))
+    names(dc) <- sort(unique(object@sc@cpart))
+    rownames(dc) <- sort(unique(object@sc@cpart))
+    trl <- spantree(dc[object@ldata$m,object@ldata$m])
+    # medoids <- compmedoids(object@sc@fdata, object@sc@cpart)
+    # cent <- object@sc@fdata[,medoids]
+    # dc <- as.data.frame(1 - cor(cent))
+    # names(dc) <- sort(unique(object@sc@cpart))
+    # rownames(dc) <- sort(unique(object@sc@cpart))
+    # trl <- vegan::spantree(dc[object@ldata$m,object@ldata$m])
+    object@trl <- list(
+      dc = dc,
+      cent = cent,
+      trl = trl
+    )
+    object
+  }
+)
 
 
 
