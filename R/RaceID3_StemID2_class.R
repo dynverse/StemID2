@@ -1941,11 +1941,10 @@ pamkdCBI <- function (data, krange = 2:10, k = NULL, criterion = "asw", usepam =
 
 #' @export
 rfcorrect <- function(sc,rfseed=12345,nbtree=NULL,final=TRUE,nbfactor=5,...){
-  require(randomForest)
   set.seed(rfseed)
   part <- if (final) sc@cpart else sc@cluster$kpart
   if ( is.null(nbtree) ) nbtree = ncol(sc@fdata[sc@cluster$features,])*nbfactor
-  rf <- randomForest(sc@distances,as.factor(part),nbtree=nbtree,...)
+  rf <- randomForest::randomForest(sc@distances,as.factor(part),nbtree=nbtree,...)
   cpo <- part
   cpart <- as.numeric(as.vector(rf$predicted))
   names(cpart ) <- names(cpo)
