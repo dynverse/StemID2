@@ -664,7 +664,7 @@ setMethod("findoutliers",
             cprobs <- c()
             outgene <- list()
             for ( n in 1:max(object@cluster$kpart) ){
-              if ( sum(object@cluster$kpart == n) == 1 ){ cprobs <- append(cprobs,.5); names(cprobs)[length(cprobs)] <- names(object@cluster$kpart)[object@cluster$kpart == n]; next }
+              if ( sum(object@cluster$kpart == n) == 1 ){ cprobs <- append(cprobs,.5); names(cprobs)[length(cprobs)] <- rownames(x); next }
               x <- object@fdata[,object@cluster$kpart == n]
               x <- x[apply(x,1,max) > outminc,]
               z <- t( apply(x,1,function(x){ apply( cbind( pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) , 1 - pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) ),1, min) } ) )
