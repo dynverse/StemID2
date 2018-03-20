@@ -664,21 +664,28 @@ setMethod("findoutliers",
             cprobs <- c()
             outgene <- list()
             for ( n in 1:max(object@cluster$kpart) ){
-              if ( sum(object@cluster$kpart == n) == 1 ){ cprobs <- append(cprobs,.5); names(cprobs)[length(cprobs)] <- rownames(x); next }
-              x <- object@fdata[,object@cluster$kpart == n]
-              x <- x[apply(x,1,max) > outminc,]
-              z <- t( apply(x,1,function(x){ apply( cbind( pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) , 1 - pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) ),1, min) } ) )
-              if(nrow(z) == 1) {
-                cp <- setNames(rep(1, ncol(z)),colnames(z))
+              x <- object@fdata[,object@cluster$kpart == n, drop = F]
+              if ( ncol(x) == 1 ){
+                cprobs <- append(cprobs,setNames(.5, colnames(x)))
               } else {
-                cp <- apply(z,2,function(x){ y <- p.adjust(x,method="BH"); y <- y[order(y,decreasing=FALSE)]; return(y[outlg]);})
+                x <- x[apply(x,1,max) > outminc,]
+                z <- t( apply(x,1,function(x){ apply( cbind( pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) , 1 - pnbinom(round(x,0),mu=mean(x),size=object@background$lsize(mean(x),object)) ),1, min) } ) )
+                if(nrow(z) == 1) {
+                  cp <- setNames(rep(1, ncol(z)),colnames(z))
+                } else {
+                  cp <- apply(z,2,function(x){
+                    y <- p.adjust(x,method="BH")
+                    y <- y[order(y,decreasing=FALSE)]
+                    return(y[outlg])
+                  })
+                }
+                f <- cp < probthr
+                cprobs <- append(cprobs,cp)
+                if ( sum(f) > 0 ) out <- append(out,names(x)[f])
+                for ( j in 1:length(thr) )  stest[j] <-  stest[j] + sum( cp < thr[j] )
+                fg <- apply(z,1,min) < probthr
+                outgene[[n]] <- if ( sum(fg) > 0 ) z[fg,] else 0
               }
-              f <- cp < probthr
-              cprobs <- append(cprobs,cp)
-              if ( sum(f) > 0 ) out <- append(out,names(x)[f])
-              for ( j in 1:length(thr) )  stest[j] <-  stest[j] + sum( cp < thr[j] )
-              fg <- apply(z,1,min) < probthr
-              outgene[[n]] <- if ( sum(fg) > 0 ) z[fg,] else 0
             }
             object@out <-list(out=out,stest=stest,thr=thr,cprobs=cprobs,outgene=outgene)
 
